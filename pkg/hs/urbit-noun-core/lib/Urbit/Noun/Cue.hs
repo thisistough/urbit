@@ -137,6 +137,7 @@ instance Monad Get where
         runGet (f x') end tbl s'
     {-# INLINE (>>=) #-}
 
+instance MonadFail Get where
     fail msg = Get $ \end tbl s -> do
       badEncoding end s msg
     {-# INLINE fail #-}

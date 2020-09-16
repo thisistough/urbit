@@ -8,6 +8,7 @@ import Control.Monad.Fail         (fail)
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Urbit.Noun.Convert
+import Control.Monad.Fail (fail)
 
 import Urbit.Noun.Core (textToUtf8Atom)
 
