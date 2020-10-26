@@ -1,0 +1,11 @@
+--- a/src/fault-linux-x86_64-old.h
++++ b/src/fault-linux-x86_64-old.h
+@@ -17,6 +17,8 @@
+ 
+ #include <asm/sigcontext.h>
+ 
++#define HAVE_STACKVMA 0
++
+ #define SIGSEGV_FAULT_HANDLER_ARGLIST  int sig, struct sigcontext sc
+ #define SIGSEGV_FAULT_CONTEXT  (&sc)
+ #define SIGSEGV_FAULT_STACKPOINTER  sc.rsp

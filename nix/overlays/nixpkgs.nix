@@ -1,4 +1,10 @@
-final: prev: {
+final: prev:
+
+let
+
+  optionalsNull = xs: prev.lib.optionals (xs != null) xs;
+
+in {
   h2o = prev.h2o.overrideAttrs (_old: {
     version = final.sources.h2o.rev;
     src = final.sources.h2o;
@@ -21,10 +27,4 @@ final: prev: {
     ldapSupport = false;
     brotliSupport = false;
   };
-
-  # perl = prev.perl.overrideAttrs (old:
-  #   prev.lib.optionalAttrs prev.stdenv.hostPlatform.isDarwin {
-  #     # Fix no-sys-dirs-5.31.patch failing to be applied on darwin.
-  #     patches = [ ];
-  #   });
 }

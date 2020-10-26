@@ -10,10 +10,8 @@ let
 
 in prev.lib.optionalAttrs isMusl {
   libsigsegv = prev.libsigsegv.overrideAttrs (old: {
-    patches = optionalsNull old.patches ++ [
-      ../pkgs/libsigsegv/sigcontext-redefined-fix.patch
-      ../pkgs/libsigsegv/stack_top-undefined-fix.patch
-    ];
+    patches = optionalsNull old.patches
+      ++ [ ../pkgs/libsigsegv/sigcontext-redefined-fix.patch ];
   });
 
   secp256k1 = prev.secp256k1.overrideAttrs (old: {
