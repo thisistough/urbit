@@ -15,8 +15,6 @@ in {
     patches = optionalsNull old.patches ++ [
       ../pkgs/libsigsegv/disable-stackvma_fault-linux-arm.patch
       ../pkgs/libsigsegv/disable-stackvma_fault-linux-i386.patch
-      ../pkgs/libsigsegv/disable-stackvma_fault-linux-x86_64-old.patch
-      ../pkgs/libsigsegv/undefined-stack_top.patch
     ];
   });
 

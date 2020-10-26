@@ -27,9 +27,10 @@ let
     (_final: _prev: { sources = finalSources; })
 
     # General unguarded (native) overrides for nixpkgs.
-    (import ./overlays/nixpkgs.nix)
+    (import ./overlays/native.nix)
 
     # Specific overrides guarded by the host platform.
+    (import ./overlays/arm.nix)
     (import ./overlays/musl.nix)
   ] ++ haskellNix.overlays ++ overlays;
 

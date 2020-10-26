@@ -10,8 +10,11 @@ let
 
 in prev.lib.optionalAttrs isMusl {
   libsigsegv = prev.libsigsegv.overrideAttrs (old: {
-    patches = optionalsNull old.patches
-      ++ [ ../pkgs/libsigsegv/sigcontext-redefined-fix.patch ];
+    postConfigure = ''
+      substituteInPlace config.h \
+        --replace '#define CFG_FAULT "fault-linux-x86_64-old.h"' \
+                  '#define CFG_FAULT "fault-linux-i386.h"'
+    '';
   });
 
   secp256k1 = prev.secp256k1.overrideAttrs (old: {
