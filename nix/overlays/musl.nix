@@ -4,7 +4,7 @@ let
 
   isMusl = prev.stdenv.hostPlatform.isMusl;
 
-  optionalList = xs: if xs == null then [] else xs;
+  optionalList = xs: if xs == null then [ ] else xs;
 
   overrideStdenv = pkg: pkg.override { stdenv = prev.gcc9Stdenv; };
 
@@ -16,8 +16,7 @@ in prev.lib.optionalAttrs isMusl {
   });
 
   secp256k1 = prev.secp256k1.overrideAttrs (attrs: {
-    nativeBuildInputs =
-      (attrs.nativeBuildInputs or [])
+    nativeBuildInputs = (attrs.nativeBuildInputs or [ ])
       ++ [ prev.buildPackages.stdenv.cc ];
   });
 

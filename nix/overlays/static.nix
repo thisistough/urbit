@@ -6,8 +6,8 @@ let
   # Will make pkgs.stdenv.isStatic available indepedent of the platform.
   # isStatic = prev.stdenv.hostPlatform.isStatic;
 
-  configureFlags = old: {
-    configureFlags = (old.configureFlags or [ ])
+  configureFlags = attrs: {
+    configureFlags = (attrs.configureFlags or [ ])
       ++ [ "--disable-shared" "--enable-static" ];
   };
 

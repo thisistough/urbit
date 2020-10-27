@@ -2,7 +2,7 @@ final: prev:
 
 let
 
-  optionalList = xs: if xs == null then [] else xs;
+  optionalList = xs: if xs == null then [ ] else xs;
 
 in {
   h2o = prev.h2o.overrideAttrs (_attrs: {
