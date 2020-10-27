@@ -26,9 +26,6 @@ in {
 
   lmdb = prev.lmdb.overrideAttrs (old:
     configureFlags old // {
-      # makeFlags =
-      #   prev.lib.remove "LDFLAGS=-Wl,-install_name,$(out)/lib/liblmdb.so" old.makeFlags;
-
       # Why remove the so version? It's easier than preventing it from being
       # built with lmdb's custom Makefiles, and it can't exist in the output
       # because otherwise the linker will preferentially choose the .so over

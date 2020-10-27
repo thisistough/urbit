@@ -4,21 +4,20 @@ let
 
   isMusl = prev.stdenv.hostPlatform.isMusl;
 
-  optionalsNull = xs: prev.lib.optionals (xs != null) xs;
+  optionalList = xs: if xs == null then [] else xs;
 
   overrideStdenv = pkg: pkg.override { stdenv = prev.gcc9Stdenv; };
 
 in prev.lib.optionalAttrs isMusl {
-  libsigsegv = prev.libsigsegv.overrideAttrs (old: {
-    postConfigure = ''
-      substituteInPlace config.h \
-        --replace '#define CFG_FAULT "fault-linux-x86_64-old.h"' \
-                  '#define CFG_FAULT "fault-linux-i386.h"'
+  libsigsegv = prev.libsigsegv.overrideAttrs (attrs: {
+    preConfigure = (attrs.preConfigure or "") + ''
+      sed -i 's/^CFG_FAULT=$/CFG_FAULT=fault-linux-i386.h/' configure
     '';
   });
 
-  secp256k1 = prev.secp256k1.overrideAttrs (old: {
-    nativeBuildInputs = optionalsNull old.nativeBuildInputs
+  secp256k1 = prev.secp256k1.overrideAttrs (attrs: {
+    nativeBuildInputs =
+      (attrs.nativeBuildInputs or [])
       ++ [ prev.buildPackages.stdenv.cc ];
   });
 
