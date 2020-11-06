@@ -1,3 +1,5 @@
+# Functions that are expected run on the native (non-cross) system.
+
 { lib, recurseIntoAttrs, haskell-nix, callPackage }:
 
 let
@@ -12,7 +14,10 @@ let
 
     makeReleaseTarball = callPackage ./make-release-tarball.nix { };
 
-    pushStorageObject = callPackage ./push-storage-object.nix { };
+    pushStorageObject =
+      callPackage ./push-storage-object.nix { inherit makeEffect; };
+
+    makeEffect = callPackage ./effect { };
   };
 
 in fetchers // rec {

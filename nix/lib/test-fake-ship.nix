@@ -1,13 +1,15 @@
-{ stdenvNoCC, cacert, python3, bootFakeShip }:
+{ lib, stdenvNoCC, cacert, python3, bootFakeShip }:
 
-{ urbit, herb, arvo ? null, pill, ship ? "bus", doCheck ? true }:
+{ urbit, herb, arvo ? null, pill, ship ? "bus", arguments ? urbit.meta.arguments
+, doCheck ? true }:
 
 stdenvNoCC.mkDerivation {
-  inherit doCheck;
-
   name = "test-${ship}";
+
   src = bootFakeShip { inherit urbit herb arvo pill ship; };
+
   phases = [ "unpackPhase" "buildPhase" "checkPhase" ];
+
   buildInputs = [ cacert urbit herb python3 ];
 
   unpackPhase = ''
@@ -18,7 +20,7 @@ stdenvNoCC.mkDerivation {
   buildPhase = ''
     set -x
 
-    urbit -d ./pier 2> urbit-output
+    urbit ${lib.concatStringsSep " " arguments} -d ./pier 2> urbit-output
 
     # Sledge Hammer!
     # See: https://github.com/travis-ci/travis-ci/issues/4704#issuecomment-348435959
@@ -161,5 +163,11 @@ stdenvNoCC.mkDerivation {
     exit "$fail"
   '';
 
-  meta = { platforms = [ "x86_64-linux" "x86_64-darwin" ]; };
+  inherit doCheck;
+
+  # Fix 'bind: operation not permitted' when nix.useSandbox = true on darwin.
+  # See https://github.com/NixOS/nix/blob/5f6840fbb49ae5b534423bd8a4360646ee93dbaf/src/libstore/build.cc#L2961
+  __darwinAllowLocalNetworking = true;
+
+  meta = { platforms = [ "x86_64-linux" ]; };
 }

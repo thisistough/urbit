@@ -13,71 +13,50 @@
 
 let
 
-  inherit (import ./nix/default.nix { }) lib haskell-nix callPackage;
+  inherit (import ./nix/default.nix { })
+    lib haskell-nix recurseIntoAttrs callPackage;
 
   # Local library import from derivation functions such as fetchGitHubLFS, etc.
   # upon which local package defintions are dependent.
-  localLib = callPackage ./nix/lib { };
+  libLocal = callPackage ./nix/lib { };
 
   # The key with google storage bucket write permission,
-  # deployed to ci via nixops `deployment.keys."service-account.json"`.
-  serviceAccountKey =
-    builtins.readFile ("/var/lib/hercules-ci-agent/secrets/service-account.json");
+  # deployed to ci via nixops deployment.keys."service-account.json".
+  serviceAccountKey = builtins.readFile
+    ("/var/lib/hercules-ci-agent/secrets/service-account.json");
 
-  # Push a split output derivation containing "out" and "hash" outputs.
-  pushObject =
-    { name, extension, drv, contentType ? "application/octet-stream" }:
-    let
-      # Use the sha256 for the object key prefix.
-      sha256 = builtins.readFile (drv.hash + "/sha256");
-      # Use md5 as an idempotency check for gsutil.
-      contentMD5 = builtins.readFile (drv.hash + "/md5");
-    in localLib.pushStorageObject {
-      inherit serviceAccountKey name contentMD5 contentType;
-
-      bucket = "bootstrap.urbit.org";
-      object = "ci/${lib.removeSuffix extension name}${sha256}.${extension}";
-      file = drv.out;
-    };
-
-  # Build and push a split output pill derivation with the ".pill" file extension.
-  pushPill = name: pill:
-    pushObject {
-      inherit name;
-
-      drv = pill.build;
-      extension = "pill";
-    };
-
+  # Filter out systems that this machine does not support.
   systems = lib.filterAttrs (_: v: builtins.elem v supportedSystems) {
     linux = "x86_64-linux";
     darwin = "x86_64-darwin";
   };
 
-in localLib.dimension "system" systems (systemName: system:
+  # Build the ci matrix for each of the supported systems, see pkgsFinal
+  # for the total set of attributes that will be evaluated per system.
+in libLocal.dimension "system" systems (systemName: system:
   let
-    dynamicPackages = import ./default.nix {
+    pkgsShared = import ./default.nix {
       inherit system;
 
       enableStatic = false;
     };
 
-    staticPackages = import ./default.nix {
+    pkgsStatic = import ./default.nix {
       inherit system;
 
       enableStatic = true;
     };
 
     # Filter the stack project to only our locally declared packages.
-    haskellPackages =
-      haskell-nix.haskellLib.selectProjectPackages staticPackages.hs;
+    pkgsHaskell = haskell-nix.haskellLib.selectProjectPackages pkgsStatic.hs;
 
     # The top-level set of attributes to build on ci.
-    finalPackages = dynamicPackages // rec {
-      # Replace some top-level attributes with their static variant.
-      inherit (staticPackages) urbit tarball;
+    pkgsFinal = {
+      # Expose select packages to increase signal-to-noise of the ci dashboard.
+      inherit (pkgsStatic) urbit;
+      inherit (pkgsShared) urbit-tests;
 
-      # Expose the nix-shell derivation as a sanity check.
+      # Expose the nix-shell derivation as a sanity check + possible cache hit.
       shell = import ./shell.nix;
 
       # Replace the .hs attribute with the individual collections of components
@@ -90,28 +69,23 @@ in localLib.dimension "system" systems (systemName: system:
       # ...
       #
       # Note that .checks are the actual _execution_ of the tests.
-      hs = localLib.collectHaskellComponents haskellPackages;
+      hs = libLocal.collectHaskellComponents pkgsHaskell;
 
-      # Push the tarball to the remote google storage bucket.
-      release = pushObject {
+      # Push the tarball to the google storage bucket for the current platform.
+      release = let inherit (pkgsStatic) tarball;
+      in libLocal.pushStorageObject {
+        inherit serviceAccountKey;
+
+        bucket = "bootstrap.urbit.org";
+        object = "ci/${lib.removePrefix "/nix/store/" (toString tarball)}";
         name = tarball.name;
-        drv = tarball;
-        extension = tarball.meta.extension;
+        file = tarball.out;
         contentType = "application/x-gtar";
       };
-
-      # Replace top-level pill attributes with push to google storage variants.
-    } // lib.optionalAttrs (system == "x86_64-linux") {
-      ivory = pushPill "ivory" dynamicPackages.ivory;
-      brass = pushPill "brass" dynamicPackages.brass;
-      solid = pushPill "solid" dynamicPackages.solid;
-
-      ivory-ropsten = pushPill "ivory-ropsten" dynamicPackages.ivory-ropsten;
-      brass-ropsten = pushPill "brass-ropsten" dynamicPackages.brass-ropsten;
     };
 
     # Filter derivations that have meta.platform missing the current system,
     # such as testFakeShip on darwin.
-    platformFilter = localLib.platformFilterGeneric system;
+    platformFilter = libLocal.platformFilterGeneric system;
 
-  in localLib.filterAttrsOnlyRecursive (_: v: platformFilter v) finalPackages)
+  in libLocal.filterAttrsOnlyRecursive (_: v: platformFilter v) pkgsFinal)
