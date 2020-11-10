@@ -55,6 +55,7 @@ withDb dir (Db dId dEvs dFx) act = do
     putStrLn "======================"
     print =<< io (Directory.canonicalizePath dir)
     print =<< io (Directory.doesPathExist dir)
+    print =<< io (Directory.getPermissions dir)
     putStrLn "======================"
   
     rwith (Log.new dir dId) $ \log -> do
