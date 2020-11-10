@@ -79,6 +79,8 @@ haskell-nix.stackProject {
         '';
       };
 
+      lmdb-static.hardeningDisable = [ "all" ];
+
       urbit-king.components.tests.urbit-king-tests = {
         testFlags = [ "--brass-pill=${brass.lfs}" ];
         hardeningDisable = [ "all" ];
