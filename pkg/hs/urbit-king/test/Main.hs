@@ -35,14 +35,14 @@ main = do
     defaultMainWithIngredients ingredients $
       localOption (Runners.NumThreads 1) $
         testGroup "Urbit"
-          [ AmesTests.tests
-          , ArvoTests.tests
-          , BehnTests.tests
-          , ClayTests.tests
-          , DawnTests.tests
-          , DeriveNounTests.tests
-          , HoonMapSetTests.tests
-          , JamTests.tests
-          , LogTests.tests
-          , NounConversionTests.tests
+          [ -- AmesTests.tests
+          -- , ArvoTests.tests
+          -- , BehnTests.tests
+          -- , ClayTests.tests
+          -- , DawnTests.tests
+          -- , DeriveNounTests.tests
+          -- , HoonMapSetTests.tests
+          -- , JamTests.tests
+           LogTests.tests
+          -- , NounConversionTests.tests
           ]
