@@ -17,6 +17,7 @@ import GHC.Natural        (Natural)
 import Urbit.King.App     (KingEnv, runKingEnvNoLog)
 
 import qualified Options
+import qualified System.Directory    as Directory
 import qualified Urbit.EventLog.LMDB as Log
 
 
@@ -51,6 +52,10 @@ readDb log = do
 
 withDb :: FilePath -> Db -> (EventLog -> RIO KingEnv a) -> RIO KingEnv a
 withDb dir (Db dId dEvs dFx) act = do
+    putStrLn "======================"
+    print =<< io (Directory.canonicalizePath dir)
+    putStrLn "======================"
+  
     rwith (Log.new dir dId) $ \log -> do
         Log.appendEvents log (fromList dEvs)
         for_ (mapToList dFx) $ \(k,v) ->
