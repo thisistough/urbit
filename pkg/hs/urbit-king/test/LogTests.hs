@@ -54,6 +54,7 @@ withDb :: FilePath -> Db -> (EventLog -> RIO KingEnv a) -> RIO KingEnv a
 withDb dir (Db dId dEvs dFx) act = do
     putStrLn "======================"
     print =<< io (Directory.canonicalizePath dir)
+    print =<< io (Directory.doesPathExist dir)
     putStrLn "======================"
   
     rwith (Log.new dir dId) $ \log -> do
