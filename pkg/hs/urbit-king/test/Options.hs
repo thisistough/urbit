@@ -9,6 +9,7 @@ import Data.Proxy             (Proxy (Proxy))
 import Data.String            (IsString)
 import GHC.TypeLits           (KnownSymbol, Symbol)
 import Prelude
+import System.FilePath        ((</>), (<.>))
 
 import qualified GHC.TypeLits       as TypeLits
 import qualified RIO.Directory      as Directory
@@ -36,8 +37,8 @@ instance KnownSymbol name => Options.IsOption (Pill name) where
   
   defaultValue =
     Pill ( "../../../bin"
-        ++ TypeLits.symbolVal (Proxy @name)
-        ++ ".pill"
+        </> TypeLits.symbolVal (Proxy @name)
+        <.> "pill"
          )
     
   parseValue = \case
